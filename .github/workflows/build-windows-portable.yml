@@ -1,0 +1,40 @@
+name: Build Tesseract Portable (32-bit ZIP)
+
+on:
+  workflow_dispatch: 
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: 📥 Repository auschecken
+        uses: actions/checkout@v4
+
+      - name: 📦 Abhängigkeiten mit vcpkg installieren (Leptonica 32-Bit)
+        run: |
+          vcpkg integrate install
+          # Hier laden wir gezielt die 32-Bit Version (x86) herunter
+          vcpkg install leptonica:x86-windows
+          
+      - name: ⚙️ CMake konfigurieren (32-Bit)
+        run: >
+          cmake -B build -S . 
+          -DCMAKE_TOOLCHAIN_FILE="$env:VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake" 
+          # -A Win32 weist den Compiler an, eine 32-Bit .exe zu erstellen
+          -A Win32
+
+      - name: 🏗️ Tesseract kompilieren
+        run: cmake --build build --config Release
+
+      - name: 🗂️ Dateien für AutoIt sammeln
+        run: cmake --install build --config Release --prefix tesseract-portable-32
+
+      - name: 🤐 Als ZIP-Archiv verpacken
+        run: Compress-Archive -Path tesseract-portable-32\* -DestinationPath Tesseract-AutoIt-Ready-32bit.zip
+
+      - name: 📤 ZIP als Artifact hochladen
+        uses: actions/upload-artifact@v4
+        with:
+          name: Tesseract-Portable-ZIP-32bit
+          path: Tesseract-AutoIt-Ready-32bit.zip
