@@ -3,6 +3,10 @@ name: Build Tesseract Portable (32-bit ZIP)
 on:
   workflow_dispatch: 
 
+# DER HOLZHAMMER: Zwingt vcpkg und CMake global auf 32-Bit
+env:
+  VCPKG_DEFAULT_TRIPLET: x86-windows
+
 jobs:
   build:
     runs-on: windows-latest
@@ -11,10 +15,11 @@ jobs:
       - name: 📥 Repository auschecken
         uses: actions/checkout@v4
 
-      - name: 📦 Abhängigkeiten mit vcpkg installieren (Leptonica 32-Bit)
+      - name: 📦 Abhängigkeiten mit vcpkg installieren (Leptonica)
+        # Da 32-Bit jetzt global erzwungen wird, reicht hier der Standardbefehl
         run: |
           vcpkg integrate install
-          vcpkg install leptonica:x86-windows
+          vcpkg install leptonica
           
       - name: ⚙️ CMake konfigurieren (32-Bit)
         run: cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE="$env:VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake" -A Win32
