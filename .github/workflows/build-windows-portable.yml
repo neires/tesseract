@@ -16,9 +16,9 @@ jobs:
           vcpkg integrate install
           vcpkg install leptonica:x86-windows pkgconf:x86-windows
           
-      - name: ⚙️ CMake konfigurieren (32-Bit & SW-Modus abgeschaltet)
-        # Der magische Parameter ist -DSW_BUILD=OFF
-        run: cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE="$env:VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake" -DVCPKG_TARGET_TRIPLET=x86-windows -A Win32 -DSW_BUILD=OFF -DDISABLE_CURL=ON -DDISABLE_ARCHIVE=ON
+      - name: ⚙️ CMake konfigurieren (32-Bit & Abgespeckt)
+        # NEU: -DBUILD_TRAINING_TOOLS=OFF hinzugefügt
+        run: cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE="$env:VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake" -DVCPKG_TARGET_TRIPLET=x86-windows -A Win32 -DSW_BUILD=OFF -DDISABLE_CURL=ON -DDISABLE_ARCHIVE=ON -DBUILD_TRAINING_TOOLS=OFF
 
       - name: 🏗️ Tesseract kompilieren
         run: cmake --build build --config Release
