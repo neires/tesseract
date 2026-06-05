@@ -17,14 +17,18 @@ jobs:
           vcpkg install leptonica:x86-windows pkgconf:x86-windows
           
       - name: ⚙️ CMake konfigurieren (32-Bit & Abgespeckt)
-        # NEU: -DBUILD_TRAINING_TOOLS=OFF hinzugefügt
         run: cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE="$env:VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake" -DVCPKG_TARGET_TRIPLET=x86-windows -A Win32 -DSW_BUILD=OFF -DDISABLE_CURL=ON -DDISABLE_ARCHIVE=ON -DBUILD_TRAINING_TOOLS=OFF
 
       - name: 🏗️ Tesseract kompilieren
         run: cmake --build build --config Release
 
-      - name: 🗂️ Dateien für AutoIt sammeln
-        run: cmake --install build --config Release --prefix tesseract-portable-32
+      - name: 🗂️ Dateien für AutoIt sammeln (inklusive DLLs)
+        run: |
+          # 1. Tesseract eigene Dateien sammeln
+          cmake --install build --config Release --prefix tesseract-portable-32
+          
+          # 2. Die fehlenden DLLs (Leptonica etc.) aus vcpkg direkt in den Tesseract "bin" Ordner kopieren
+          Copy-Item -Path "$env:VCPKG_INSTALLATION_ROOT\installed\x86-windows\bin\*.dll" -Destination "tesseract-portable-32\bin\" -Force
 
       - name: 🤐 Als ZIP-Archiv verpacken
         run: Compress-Archive -Path tesseract-portable-32\* -DestinationPath Tesseract-AutoIt-Ready-32bit.zip
