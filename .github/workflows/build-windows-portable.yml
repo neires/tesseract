@@ -14,15 +14,10 @@ jobs:
       - name: 📦 Abhängigkeiten mit vcpkg installieren (Leptonica 32-Bit)
         run: |
           vcpkg integrate install
-          # Hier laden wir gezielt die 32-Bit Version (x86) herunter
           vcpkg install leptonica:x86-windows
           
       - name: ⚙️ CMake konfigurieren (32-Bit)
-        run: >
-          cmake -B build -S . 
-          -DCMAKE_TOOLCHAIN_FILE="$env:VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake" 
-          # -A Win32 weist den Compiler an, eine 32-Bit .exe zu erstellen
-          -A Win32
+        run: cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE="$env:VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake" -A Win32
 
       - name: 🏗️ Tesseract kompilieren
         run: cmake --build build --config Release
