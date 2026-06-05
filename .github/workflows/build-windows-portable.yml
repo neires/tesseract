@@ -11,15 +11,14 @@ jobs:
       - name: 📥 Repository auschecken
         uses: actions/checkout@v4
 
-      - name: 📦 Abhängigkeiten installieren (Leptonica & PkgConf)
-        # Wir installieren zusätzlich "pkgconf", damit Tesseract Leptonica überhaupt sieht!
+      - name: 📦 Abhängigkeiten installieren (Leptonica)
         run: |
           vcpkg integrate install
           vcpkg install leptonica:x86-windows pkgconf:x86-windows
           
-      - name: ⚙️ CMake konfigurieren (32-Bit & Pfad erzwungen)
-        # Wir geben mit -DLeptonica_DIR den absoluten Pfad an, damit die Suche nach SW übersprungen wird
-        run: cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE="$env:VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake" -DVCPKG_TARGET_TRIPLET=x86-windows -A Win32 -DDISABLE_CURL=ON -DDISABLE_ARCHIVE=ON -DLeptonica_DIR="$env:VCPKG_INSTALLATION_ROOT/installed/x86-windows/share/leptonica"
+      - name: ⚙️ CMake konfigurieren (32-Bit & SW-Modus abgeschaltet)
+        # Der magische Parameter ist -DSW_BUILD=OFF
+        run: cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE="$env:VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake" -DVCPKG_TARGET_TRIPLET=x86-windows -A Win32 -DSW_BUILD=OFF -DDISABLE_CURL=ON -DDISABLE_ARCHIVE=ON
 
       - name: 🏗️ Tesseract kompilieren
         run: cmake --build build --config Release
