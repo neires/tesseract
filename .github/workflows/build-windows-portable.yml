@@ -3,10 +3,6 @@ name: Build Tesseract Portable (32-bit ZIP)
 on:
   workflow_dispatch: 
 
-# DER HOLZHAMMER: Zwingt vcpkg und CMake global auf 32-Bit
-env:
-  VCPKG_DEFAULT_TRIPLET: x86-windows
-
 jobs:
   build:
     runs-on: windows-latest
@@ -15,14 +11,16 @@ jobs:
       - name: 📥 Repository auschecken
         uses: actions/checkout@v4
 
-      - name: 📦 Abhängigkeiten mit vcpkg installieren (Leptonica)
-        # Da 32-Bit jetzt global erzwungen wird, reicht hier der Standardbefehl
+      - name: 🛠️ SW (Software Network) installieren
+        # Wir geben Tesseract den Paketmanager, den es in der Fehlermeldung verlangt
         run: |
-          vcpkg integrate install
-          vcpkg install leptonica
-          
+          curl.exe -L "https://software-network.org/client/sw-master-windows-client.zip" -o sw.zip
+          7z.exe x sw.zip -o"C:\sw"
+          Add-Content -Path $env:GITHUB_PATH -Value "C:\sw"
+
       - name: ⚙️ CMake konfigurieren (32-Bit)
-        run: cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE="$env:VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake" -A Win32
+        # SW lädt sich die 32-Bit-Abhängigkeiten (Leptonica etc.) jetzt völlig automatisch im Hintergrund herunter
+        run: cmake -B build -S . -A Win32
 
       - name: 🏗️ Tesseract kompilieren
         run: cmake --build build --config Release
