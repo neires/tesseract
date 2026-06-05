@@ -1,4 +1,4 @@
-name: Build Tesseract Portable (32-bit ZIP)
+name: Build Tesseract Portable (32-bit Static)
 
 on:
   workflow_dispatch: 
@@ -11,30 +11,29 @@ jobs:
       - name: 📥 Repository auschecken
         uses: actions/checkout@v4
 
-      - name: 📦 Abhängigkeiten installieren (Leptonica)
+      - name: 📦 Abhängigkeiten statisch installieren (Leptonica)
         run: |
           vcpkg integrate install
-          vcpkg install leptonica:x86-windows pkgconf:x86-windows
+          # DAS ZAUBERWORT: x86-windows-static
+          vcpkg install leptonica:x86-windows-static pkgconf:x86-windows
           
-      - name: ⚙️ CMake konfigurieren (32-Bit & Abgespeckt)
-        run: cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE="$env:VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake" -DVCPKG_TARGET_TRIPLET=x86-windows -A Win32 -DSW_BUILD=OFF -DDISABLE_CURL=ON -DDISABLE_ARCHIVE=ON -DBUILD_TRAINING_TOOLS=OFF
+      - name: ⚙️ CMake konfigurieren (32-Bit & Statisch)
+        # Auch hier übergeben wir den -static Triplet an CMake
+        run: cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE="$env:VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake" -DVCPKG_TARGET_TRIPLET=x86-windows-static -A Win32 -DSW_BUILD=OFF -DDISABLE_CURL=ON -DDISABLE_ARCHIVE=ON -DBUILD_TRAINING_TOOLS=OFF
 
       - name: 🏗️ Tesseract kompilieren
         run: cmake --build build --config Release
 
-      - name: 🗂️ Dateien für AutoIt sammeln (inklusive DLLs)
+      - name: 🗂️ Dateien für AutoIt sammeln (Ohne DLLs!)
         run: |
-          # 1. Tesseract eigene Dateien sammeln
+          # Sammelt nur noch die tesseract.exe, da alles andere fest eingebaut ist
           cmake --install build --config Release --prefix tesseract-portable-32
-          
-          # 2. Die fehlenden DLLs (Leptonica etc.) aus vcpkg direkt in den Tesseract "bin" Ordner kopieren
-          Copy-Item -Path "$env:VCPKG_INSTALLATION_ROOT\installed\x86-windows\bin\*.dll" -Destination "tesseract-portable-32\bin\" -Force
 
       - name: 🤐 Als ZIP-Archiv verpacken
-        run: Compress-Archive -Path tesseract-portable-32\* -DestinationPath Tesseract-AutoIt-Ready-32bit.zip
+        run: Compress-Archive -Path tesseract-portable-32\* -DestinationPath Tesseract-AutoIt-Ready-32bit-Static.zip
 
       - name: 📤 ZIP als Artifact hochladen
         uses: actions/upload-artifact@v4
         with:
-          name: Tesseract-Portable-ZIP-32bit
-          path: Tesseract-AutoIt-Ready-32bit.zip
+          name: Tesseract-Portable-ZIP-32bit-Static
+          path: Tesseract-AutoIt-Ready-32bit-Static.zip
